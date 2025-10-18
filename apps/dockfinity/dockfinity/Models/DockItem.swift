@@ -16,7 +16,7 @@ enum DockItemType: String, Codable, Sendable {
 }
 
 @Model
-final class DockItem {
+final class DockItem: Sendable {
     var id: UUID
     var type: DockItemType
     var name: String

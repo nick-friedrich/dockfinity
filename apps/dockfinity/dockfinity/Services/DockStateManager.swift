@@ -52,8 +52,11 @@ class DockStateManager: ObservableObject {
     // MARK: - Default Profile Creation
     
     func createDefaultProfile() async throws -> Profile {
+        print("🚀 Creating default profile...")
+        
         // Read current Dock state
         let currentDockItems = try await dockUtilService.readCurrentDock()
+        print("📊 Read \(currentDockItems.count) items from Dock")
         
         // Create Default profile
         let defaultProfile = Profile(name: "Default", isDefault: true, sortOrder: 0)
@@ -69,11 +72,13 @@ class DockStateManager: ObservableObject {
             )
             dockItem.profile = defaultProfile
             modelContext.insert(dockItem)
+            print("  ➕ Added: \(itemInfo.name)")
         }
         
         try modelContext.save()
         setCurrentProfile(defaultProfile)
         
+        print("✅ Default profile created with \(currentDockItems.count) items")
         return defaultProfile
     }
     

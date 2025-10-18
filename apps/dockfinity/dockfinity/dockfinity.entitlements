@@ -2,24 +2,15 @@
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
 <plist version="1.0">
 <dict>
-	<key>com.apple.security.app-sandbox</key>
-	<true/>
-	<key>com.apple.security.files.user-selected.read-only</key>
-	<true/>
-	<key>com.apple.security.files.user-selected.read-write</key>
-	<true/>
-	<key>com.apple.security.temporary-exception.files.absolute-path.read-write</key>
-	<array>
-		<string>/Users/</string>
-	</array>
-	<key>com.apple.security.temporary-exception.apple-events</key>
-	<array>
-		<string>com.apple.dock</string>
-	</array>
-	<key>com.apple.security.automation.apple-events</key>
-	<true/>
-	<key>com.apple.security.network.client</key>
-	<true/>
+	<!-- 
+	NOTE: This app is configured for DEVELOPMENT and DIRECT DISTRIBUTION only.
+	- App Sandbox: DISABLED (required for Dock manipulation)
+	- Hardened Runtime: DISABLED (required to execute external binaries like dockutil)
+	- NOT compatible with Mac App Store distribution
+	- Can be notarized for distribution outside MAS
+	-->
+	
+	<!-- CloudKit for profile sync -->
 	<key>com.apple.developer.icloud-container-identifiers</key>
 	<array>
 		<string>iCloud.$(CFBundleIdentifier)</string>

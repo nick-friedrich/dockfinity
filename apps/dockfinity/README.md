@@ -23,23 +23,31 @@ A macOS application for managing and switching between different Dock profiles/l
 
 #### dockutil (Required)
 
-DockFinity uses `dockutil` to safely manipulate the Dock using standard macOS APIs.
+DockFinity **requires** `dockutil` to safely manipulate the Dock using standard macOS APIs. The app will not work without it.
 
-**Installation via Homebrew:**
+**Installation via Homebrew (Required):**
 
 ```bash
 brew install dockutil
 ```
 
-**Manual Installation:**
-Download from [dockutil GitHub releases](https://github.com/kcrawford/dockutil/releases)
+**Why is it required?**
+
+- Safely reads and writes Dock configuration
+- Prevents corruption of Dock preferences
+- Industry-standard tool used by many Dock managers
+- Handles edge cases and macOS version differences
 
 **Verification:**
 
 ```bash
 which dockutil
-# Should output: /opt/homebrew/bin/dockutil or similar
+# Should output: /opt/homebrew/bin/dockutil (Apple Silicon)
+# or: /usr/local/bin/dockutil (Intel Mac)
 ```
+
+**Without dockutil:**
+The app will show a clear error message prompting you to install it.
 
 ## Setup
 
