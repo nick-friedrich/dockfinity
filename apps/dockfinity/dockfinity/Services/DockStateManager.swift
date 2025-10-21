@@ -54,6 +54,21 @@ class DockStateManager: ObservableObject {
     func createDefaultProfile() async throws -> Profile {
         print("🚀 Creating default profile...")
         
+        // Check if a Default profile already exists (might be synced from CloudKit)
+        let descriptor = FetchDescriptor<Profile>(
+            predicate: #Predicate { $0.isDefault == true }
+        )
+        let existingDefaults = try modelContext.fetch(descriptor)
+        
+        if !existingDefaults.isEmpty {
+            print("⚠️ Default profile(s) already exist (possibly from CloudKit sync)")
+            print("   Found \(existingDefaults.count) default profile(s)")
+            // Use the first one
+            let defaultProfile = existingDefaults[0]
+            setCurrentProfile(defaultProfile)
+            return defaultProfile
+        }
+        
         // Read current Dock state
         let currentDockItems = try await dockUtilService.readCurrentDock()
         print("📊 Read \(currentDockItems.count) items from Dock")

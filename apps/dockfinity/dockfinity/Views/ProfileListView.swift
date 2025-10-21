@@ -84,12 +84,10 @@ struct ProfileListView: View {
                         profileToEdit = profile
                     }
                     
-                    if !profile.isDefault {
-                        Divider()
-                        
-                        Button("Delete", role: .destructive) {
-                            deletingProfile = profile
-                        }
+                    Divider()
+                    
+                    Button("Delete", role: .destructive) {
+                        deletingProfile = profile
                     }
                 }
             }

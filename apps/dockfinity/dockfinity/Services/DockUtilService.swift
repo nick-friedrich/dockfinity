@@ -69,45 +69,177 @@ class DockUtilService {
             throw DockUtilError.dockutilNotFound
         }
         
-        print("📝 Applying profile with \(items.count) items...")
-        
-        // First, remove all current items
-        try await clearDock()
-        
-        // Then add items from the profile in order
-        for item in items.sorted(by: { $0.position < $1.position }) {
-            try await addItemToDock(item)
+        let validItems = items.filter { item in
+            switch item.type {
+            case .app, .folder:
+                let ok = FileManager.default.fileExists(atPath: item.path)
+                if !ok { print("🚫 Skipping missing \(item.type) '\(item.name)' at \(item.path)") }
+                return ok
+            case .url, .spacer:
+                return true
+            }
         }
         
-        // Restart Dock to apply changes
+        if validItems.count != items.count {
+            print("⚠️ Some items were skipped due to invalid paths. Proceeding with \(validItems.count) valid items…")
+        }
+        
+        // First, remove all current items and kill cfprefsd to clear cache
+        try await clearDock()
+        
+        // Sort items by position
+        let sortedItems = validItems.sorted(by: { $0.position < $1.position })
+        
+        for (i, item) in sortedItems.enumerated() {
+            print("  [\(i + 1)/\(validItems.count)] Adding \(item.name)...")
+            try await addItemToDock(item, noRestart: true)
+            try await Task.sleep(nanoseconds: 50_000_000) // 0.2s between items
+
+        }
+
+        // Restart Dock to commit the batch
+        print("🔄 Restarting Dock to commit batch...")
         try await restartDock()
         
-        print("✅ Profile applied successfully!")
+        // Final verification
+        print("⏳ Performing final verification...")
+        try await Task.sleep(nanoseconds: 1_000_000_000)
+        
+        // Count how many items are actually in the Dock
+        do {
+            let currentItems = try await readCurrentDock()
+            print("✅ Profile applied! \(currentItems.count) items now in Dock (expected \(validItems.count))")
+            
+            if currentItems.count < validItems.count {
+                print("⚠️ Warning: Some items may not have been added successfully")
+                print("   Expected: \(validItems.count), Got: \(currentItems.count)")
+            }
+        } catch {
+            print("⚠️ Could not verify final Dock state: \(error.localizedDescription)")
+        }
     }
     
     /// Clears all items from the Dock
     private func clearDock() async throws {
-        _ = try await runDockutilCommand(["--remove", "all"])
+        print("🧹 Clearing all items from Dock...")
+        _ = try await runDockutilCommand(["--remove", "all", "--no-restart", "--verbose"])
+        print("✅ Dock cleared")
+    }
+    
+    /// Kills the cfprefsd daemon to force preference cache refresh
+    private func killCfprefsd() async throws {
+        _ = try? await runShellCommand("/usr/bin/killall", arguments: ["cfprefsd"])
+        // cfprefsd will automatically restart when needed
+    }
+    
+    /// Verifies that an item was actually added to the Dock
+    private func verifyItemAdded(_ item: DockItem, maxAttempts: Int = 3) async -> Bool {
+        for attempt in 0..<maxAttempts {
+            if await dockContains(item) {
+                print("    ✓ Verified: \(item.name) is in Dock")
+                return true
+            }
+            if attempt < maxAttempts - 1 {
+                print("    ⏳ Verification attempt \(attempt + 1) failed, retrying...")
+                try? await Task.sleep(nanoseconds: 2_000_000_000)
+            }
+        }
+        print("    ✗ Could not verify \(item.name) after \(maxAttempts) attempts")
+        return false
+    }
+    
+    /// Wait until Dock responds to dockutil (avoids "connection interrupted" races)
+    private func waitForDockReady(timeoutSeconds: Int = 10) async {
+        let deadline = Date().addingTimeInterval(TimeInterval(timeoutSeconds))
+        while Date() < deadline {
+            do {
+                _ = try await runDockutilCommand(["--list"]) // succeeds when Dock is ready
+                return
+            } catch {
+                // Keep waiting
+            }
+            try? await Task.sleep(nanoseconds: 500_000_000) // 0.5s
+        }
     }
     
     /// Adds a single item to the Dock
-    private func addItemToDock(_ item: DockItem) async throws {
+    private func addItemToDock(_ item: DockItem, noRestart: Bool = true) async throws {
+        // Validate target exists for app/folder to avoid silent dockutil no-ops
+        if item.type == .app || item.type == .folder {
+            if !FileManager.default.fileExists(atPath: item.path) {
+                print("❌ Path does not exist: \(item.path). Skipping \(item.name)")
+                throw DockUtilError.commandFailed("Target path not found: \(item.path)")
+            }
+        }
+        
+        var args: [String] = []
+        
         switch item.type {
         case .app:
-            _ = try await runDockutilCommand(["--add", item.path, "--no-restart"])
+            // Explicitly add to apps section to avoid going to "others"
+            args = ["--add", item.path, "--section", "apps"]
         case .folder:
-            _ = try await runDockutilCommand(["--add", item.path, "--view", "auto", "--display", "folder", "--no-restart"])
+            // Folders should go to "others" section by default, but we'll put them in apps
+            args = ["--add", item.path, "--view", "auto", "--display", "folder", "--section", "apps"]
         case .url:
-            // For URLs, we might need special handling
-            _ = try await runDockutilCommand(["--add", item.path, "--label", item.name, "--no-restart"])
+            args = ["--add", item.path, "--label", item.name, "--section", "apps"]
         case .spacer:
-            _ = try await runDockutilCommand(["--add", "", "--type", "spacer", "--section", "apps", "--no-restart"])
+            args = ["--add", "", "--type", "spacer", "--section", "apps"]
         }
+        
+        // Add --no-restart flag if requested
+        if noRestart {
+            args.append("--no-restart")
+        }
+        
+        _ = try await runDockutilCommand(args)
     }
     
     /// Restarts the Dock to apply changes
     func restartDock() async throws {
         _ = try await runShellCommand("/usr/bin/killall", arguments: ["Dock"])
+        // Wait for Dock process to come back online and accept commands
+        await waitForDockReady(timeoutSeconds: 12)
+    }
+    
+    /// Check if a Dock item is present (by exact path for apps/folders, by label for URLs)
+    private func dockContains(_ item: DockItem) async -> Bool {
+        do {
+            let output = try await runDockutilCommand(["--list"])        
+            let infos = try parseDockutilOutput(output)
+            switch item.type {
+            case .app, .folder:
+                return infos.contains { $0.path == item.path }
+            case .url:
+                // dockutil --list shows the label in the first column
+                return infos.contains { $0.name == item.name }
+            case .spacer:
+                // spacers are not listed by --list; assume success after add
+                return true
+            }
+        } catch {
+            return false
+        }
+    }
+    
+    /// Verifies that the Dock plist was recently modified (useful for debugging)
+    private func verifyDockPlistModified() {
+        let dockPlistPath = "\(NSHomeDirectory())/Library/Preferences/com.apple.dock.plist"
+        do {
+            let attributes = try FileManager.default.attributesOfItem(atPath: dockPlistPath)
+            if let modDate = attributes[.modificationDate] as? Date {
+                let formatter = DateFormatter()
+                formatter.timeStyle = .medium
+                print("🧾 Dock plist last modified: \(formatter.string(from: modDate))")
+                
+                // Warn if plist hasn't been modified in the last 5 seconds
+                if Date().timeIntervalSince(modDate) > 5 {
+                    print("⚠️ Warning: Dock plist modification is stale (>5 seconds ago)")
+                }
+            }
+        } catch {
+            print("⚠️ Could not verify Dock plist modification: \(error.localizedDescription)")
+        }
     }
     
     // MARK: - Helper Methods
@@ -197,11 +329,24 @@ class DockUtilService {
             let data = pipe.fileHandleForReading.readDataToEndOfFile()
             let output = String(data: data, encoding: .utf8) ?? ""
             
+            let errorData = errorPipe.fileHandleForReading.readDataToEndOfFile()
+            let errorOutput = String(data: errorData, encoding: .utf8) ?? ""
+            
+            // Check for errors in stderr even if exit status is 0
+            // dockutil sometimes reports "Dock connection error" but still exits successfully
+            let hasConnectionError = errorOutput.lowercased().contains("dock connection error") ||
+                                    errorOutput.lowercased().contains("connection interrupted")
+            
             if process.terminationStatus != 0 {
-                let errorData = errorPipe.fileHandleForReading.readDataToEndOfFile()
-                let errorOutput = String(data: errorData, encoding: .utf8) ?? "Unknown error"
                 print("❌ Process failed with status \(process.terminationStatus): \(errorOutput)")
                 throw DockUtilError.commandFailed(errorOutput)
+            } else if hasConnectionError {
+                print("⚠️ Warning: Dock connection issue detected: \(errorOutput)")
+                // Don't throw - these are often transient warnings that don't prevent success
+            }
+            
+            if !errorOutput.isEmpty && !hasConnectionError {
+                print("⚠️ Process stderr: \(errorOutput)")
             }
             
             print("✅ Process completed successfully")
@@ -264,4 +409,3 @@ class DockUtilService {
         return items
     }
 }
-
