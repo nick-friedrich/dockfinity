@@ -23,7 +23,7 @@ struct ContentView: View {
     }
     
     var body: some View {
-        NavigationSplitView {
+        NavigationSplitView() {
             ProfileListView(
                 selectedProfile: $selectedProfile,
                 showingNewProfile: $showingNewProfile,
@@ -32,6 +32,7 @@ struct ContentView: View {
                 onRefresh: refreshProfile,
                 onDuplicate: duplicateProfile
             )
+            .navigationSplitViewColumnWidth(min: 200, ideal: 250, max: 400)
         } detail: {
             if let selectedProfile {
                 ProfileDetailView(
@@ -72,6 +73,8 @@ struct ContentView: View {
                 )
             }
         }
+        .navigationSplitViewStyle(.balanced)
+        .frame(minWidth: 900, minHeight: 500)
         .sheet(isPresented: $showingNewProfile) {
             NavigationStack {
                 ProfileFormView { newProfile in

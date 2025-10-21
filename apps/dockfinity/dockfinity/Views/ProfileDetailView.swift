@@ -14,6 +14,7 @@ struct ProfileDetailView: View {
     @Binding var isRefreshing: Bool
     
     @Environment(\.modelContext) private var modelContext
+    @State private var showingAddApps = false
     
     var sortedItems: [DockItem] {
         profile.items.sorted { $0.position < $1.position }
@@ -45,6 +46,20 @@ struct ProfileDetailView: View {
         }
         .navigationTitle(profile.name)
         .navigationSubtitle("\(sortedItems.count) item\(sortedItems.count == 1 ? "" : "s")")
+        .toolbar {
+            ToolbarItem(placement: .primaryAction) {
+                Button {
+                    showingAddApps = true
+                } label: {
+                    Label("Add Apps", systemImage: "plus.app")
+                }
+                .labelStyle(.titleAndIcon)
+                .help("Add applications to this profile")
+            }
+        }
+        .sheet(isPresented: $showingAddApps) {
+            AddAppsView(profile: profile)
+        }
         .overlay {
             if isRefreshing {
                 ProgressView("Refreshing from Dock...")
