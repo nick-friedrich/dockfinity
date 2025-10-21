@@ -31,12 +31,14 @@ struct ProfileDetailView: View {
             } else {
                 List {
                     ForEach(sortedItems) { item in
-                        DockItemRow(item: item)
-                            .contextMenu {
-                                Button("Remove from Profile", role: .destructive) {
-                                    deleteItem(item)
-                                }
+                        DockItemRow(item: item) {
+                            deleteItem(item)
+                        }
+                        .contextMenu {
+                            Button("Remove from Profile", role: .destructive) {
+                                deleteItem(item)
                             }
+                        }
                     }
                     .onMove(perform: moveItems)
                     .onDelete(perform: deleteItems)
@@ -124,6 +126,7 @@ struct ProfileDetailView: View {
 
 struct DockItemRow: View {
     let item: DockItem
+    let onDelete: () -> Void
     
     var body: some View {
         HStack(spacing: 12) {
@@ -150,8 +153,19 @@ struct DockItemRow: View {
             }
             
             VStack(alignment: .leading, spacing: 4) {
-                Text(item.name)
-                    .font(.headline)
+                HStack(spacing: 6) {
+                    Text(item.name)
+                        .font(.headline)
+                    
+                    // Item type badge next to the title
+                    Text(item.type.rawValue.capitalized)
+                        .font(.caption2)
+                        .padding(.horizontal, 6)
+                        .padding(.vertical, 2)
+                        .background(itemColor.opacity(0.2))
+                        .foregroundColor(itemColor)
+                        .cornerRadius(4)
+                }
                 
                 Text(item.path)
                     .font(.caption)
@@ -162,14 +176,14 @@ struct DockItemRow: View {
             
             Spacer()
             
-            // Item type badge
-            Text(item.type.rawValue.capitalized)
-                .font(.caption2)
-                .padding(.horizontal, 6)
-                .padding(.vertical, 2)
-                .background(itemColor.opacity(0.2))
-                .foregroundColor(itemColor)
-                .cornerRadius(4)
+            // Trash icon button
+            Button(action: onDelete) {
+                Image(systemName: "trash")
+                    .foregroundColor(.secondary)
+                    .font(.system(size: 14))
+            }
+            .buttonStyle(.plain)
+            .help("Remove from profile")
         }
         .padding(.vertical, 4)
     }
