@@ -33,7 +33,7 @@ struct dockfinityApp: App {
     @State private var isInitialized = false
 
     var body: some Scene {
-        WindowGroup {
+        WindowGroup(id: "main") {
             if isInitialized {
                 ContentView(modelContext: sharedModelContainer.mainContext)
                     .modelContainer(sharedModelContainer)
@@ -45,6 +45,22 @@ struct dockfinityApp: App {
                     }
             }
         }
+        .windowResizability(.contentSize)
+        .defaultSize(width: 900, height: 600)
+        .commands {
+            CommandGroup(replacing: .newItem) { }
+        }
+        
+        MenuBarExtra("DockFinity", systemImage: "dock.rectangle") {
+            if isInitialized {
+                MenuBarView(modelContext: sharedModelContainer.mainContext)
+                    .modelContainer(sharedModelContainer)
+            } else {
+                Text("Initializing...")
+                    .foregroundColor(.secondary)
+            }
+        }
+        .menuBarExtraStyle(.menu)
     }
     
     // MARK: - First Launch Initialization
