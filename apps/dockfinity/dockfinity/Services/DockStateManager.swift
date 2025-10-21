@@ -83,7 +83,8 @@ class DockStateManager: ObservableObject {
                 type: itemInfo.type,
                 name: itemInfo.name,
                 path: itemInfo.path,
-                position: index
+                position: index,
+                customIconData: itemInfo.iconData
             )
             dockItem.profile = defaultProfile
             modelContext.insert(dockItem)
@@ -114,7 +115,8 @@ class DockStateManager: ObservableObject {
                 type: itemInfo.type,
                 name: itemInfo.name,
                 path: itemInfo.path,
-                position: index
+                position: index,
+                customIconData: itemInfo.iconData
             )
             dockItem.profile = profile
             modelContext.insert(dockItem)

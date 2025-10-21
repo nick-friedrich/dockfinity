@@ -7,6 +7,7 @@
 
 import SwiftUI
 import SwiftData
+import AppKit
 
 struct ProfileDetailView: View {
     let profile: Profile
@@ -51,15 +52,26 @@ struct DockItemRow: View {
     
     var body: some View {
         HStack(spacing: 12) {
-            // Item icon placeholder
-            ZStack {
-                RoundedRectangle(cornerRadius: 8)
-                    .fill(itemColor.gradient)
-                    .frame(width: 40, height: 40)
-                
-                Image(systemName: itemIcon)
-                    .foregroundColor(.white)
-                    .font(.system(size: 20))
+            // Item icon - show actual icon if available, otherwise show placeholder
+            Group {
+                if let iconData = item.customIconData,
+                   let nsImage = NSImage(data: iconData) {
+                    Image(nsImage: nsImage)
+                        .resizable()
+                        .frame(width: 40, height: 40)
+                        .cornerRadius(8)
+                } else {
+                    // Fallback to placeholder
+                    ZStack {
+                        RoundedRectangle(cornerRadius: 8)
+                            .fill(itemColor.gradient)
+                            .frame(width: 40, height: 40)
+                        
+                        Image(systemName: itemIcon)
+                            .foregroundColor(.white)
+                            .font(.system(size: 20))
+                    }
+                }
             }
             
             VStack(alignment: .leading, spacing: 4) {

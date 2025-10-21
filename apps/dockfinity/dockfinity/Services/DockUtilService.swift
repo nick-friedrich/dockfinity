@@ -6,6 +6,7 @@
 //
 
 import Foundation
+import AppKit
 
 enum DockUtilError: Error, LocalizedError {
     case dockutilNotFound
@@ -31,6 +32,7 @@ struct DockItemInfo {
     let type: DockItemType
     let name: String
     let path: String
+    let iconData: Data?
 }
 
 class DockUtilService {
@@ -242,6 +244,40 @@ class DockUtilService {
         }
     }
     
+    // MARK: - Icon Extraction
+    
+    /// Extracts icon data from an app or folder
+    private func extractIconData(for path: String, type: DockItemType) -> Data? {
+        guard type == .app || type == .folder else {
+            return nil
+        }
+        
+        guard FileManager.default.fileExists(atPath: path) else {
+            return nil
+        }
+        
+        let icon = NSWorkspace.shared.icon(forFile: path)
+        
+        // Resize icon to a reasonable size (e.g., 64x64 for storage efficiency)
+        let targetSize = NSSize(width: 64, height: 64)
+        let resizedIcon = NSImage(size: targetSize)
+        resizedIcon.lockFocus()
+        icon.draw(in: NSRect(origin: .zero, size: targetSize),
+                  from: NSRect(origin: .zero, size: icon.size),
+                  operation: .copy,
+                  fraction: 1.0)
+        resizedIcon.unlockFocus()
+        
+        // Convert to PNG data
+        guard let tiffData = resizedIcon.tiffRepresentation,
+              let bitmap = NSBitmapImageRep(data: tiffData),
+              let pngData = bitmap.representation(using: .png, properties: [:]) else {
+            return nil
+        }
+        
+        return pngData
+    }
+    
     // MARK: - Helper Methods
     
     /// Checks if dockutil is available on the system and caches its path
@@ -402,7 +438,10 @@ class DockUtilService {
                 type = .folder
             }
             
-            items.append(DockItemInfo(type: type, name: name, path: cleanPath))
+            // Extract icon data for apps and folders
+            let iconData = extractIconData(for: cleanPath, type: type)
+            
+            items.append(DockItemInfo(type: type, name: name, path: cleanPath, iconData: iconData))
         }
         
         print("✅ Parsed \(items.count) pinned apps (filtered out non-pinned items)")
