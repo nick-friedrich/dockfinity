@@ -95,7 +95,7 @@ class DockUtilService {
         for (i, item) in sortedItems.enumerated() {
             print("  [\(i + 1)/\(validItems.count)] Adding \(item.name)...")
             try await addItemToDock(item, noRestart: true)
-            try await Task.sleep(nanoseconds: 50_000_000) // 0.2s between items
+            //try await Task.sleep(nanoseconds: 20_000_000) // 0.02s between items
 
         }
 
@@ -105,7 +105,7 @@ class DockUtilService {
         
         // Final verification
         print("⏳ Performing final verification...")
-        try await Task.sleep(nanoseconds: 1_000_000_000)
+        try await Task.sleep(nanoseconds: 500_000_000) // 500ms
         
         // Count how many items are actually in the Dock
         do {
@@ -128,28 +128,6 @@ class DockUtilService {
         print("✅ Dock cleared")
     }
     
-    /// Kills the cfprefsd daemon to force preference cache refresh
-    private func killCfprefsd() async throws {
-        _ = try? await runShellCommand("/usr/bin/killall", arguments: ["cfprefsd"])
-        // cfprefsd will automatically restart when needed
-    }
-    
-    /// Verifies that an item was actually added to the Dock
-    private func verifyItemAdded(_ item: DockItem, maxAttempts: Int = 3) async -> Bool {
-        for attempt in 0..<maxAttempts {
-            if await dockContains(item) {
-                print("    ✓ Verified: \(item.name) is in Dock")
-                return true
-            }
-            if attempt < maxAttempts - 1 {
-                print("    ⏳ Verification attempt \(attempt + 1) failed, retrying...")
-                try? await Task.sleep(nanoseconds: 2_000_000_000)
-            }
-        }
-        print("    ✗ Could not verify \(item.name) after \(maxAttempts) attempts")
-        return false
-    }
-    
     /// Wait until Dock responds to dockutil (avoids "connection interrupted" races)
     private func waitForDockReady(timeoutSeconds: Int = 10) async {
         let deadline = Date().addingTimeInterval(TimeInterval(timeoutSeconds))
@@ -160,7 +138,7 @@ class DockUtilService {
             } catch {
                 // Keep waiting
             }
-            try? await Task.sleep(nanoseconds: 500_000_000) // 0.5s
+            try? await Task.sleep(nanoseconds: 200_000_000) // 0.2s
         }
     }
     

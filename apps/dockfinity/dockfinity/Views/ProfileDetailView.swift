@@ -13,6 +13,8 @@ struct ProfileDetailView: View {
     let profile: Profile
     @Binding var isRefreshing: Bool
     
+    @Environment(\.modelContext) private var modelContext
+    
     var sortedItems: [DockItem] {
         profile.items.sorted { $0.position < $1.position }
     }
@@ -29,7 +31,14 @@ struct ProfileDetailView: View {
                 List {
                     ForEach(sortedItems) { item in
                         DockItemRow(item: item)
+                            .contextMenu {
+                                Button("Remove from Profile", role: .destructive) {
+                                    deleteItem(item)
+                                }
+                            }
                     }
+                    .onMove(perform: moveItems)
+                    .onDelete(perform: deleteItems)
                 }
                 .listStyle(.inset)
             }
@@ -43,6 +52,57 @@ struct ProfileDetailView: View {
                     .background(.regularMaterial)
                     .cornerRadius(10)
             }
+        }
+    }
+    
+    private func moveItems(from source: IndexSet, to destination: Int) {
+        var reorderedItems = sortedItems
+        reorderedItems.move(fromOffsets: source, toOffset: destination)
+        
+        // Update position for all items
+        for (index, item) in reorderedItems.enumerated() {
+            item.position = index
+        }
+        
+        // Save to SwiftData
+        do {
+            try modelContext.save()
+            print("✅ Items reordered and saved")
+        } catch {
+            print("❌ Failed to save reordered items: \(error)")
+        }
+    }
+    
+    private func deleteItems(at offsets: IndexSet) {
+        let itemsToDelete = offsets.map { sortedItems[$0] }
+        
+        // Delete items
+        for item in itemsToDelete {
+            modelContext.delete(item)
+        }
+        
+        // Update positions for remaining items
+        let remainingItems = sortedItems.filter { item in
+            !itemsToDelete.contains(where: { $0.id == item.id })
+        }
+        
+        for (index, item) in remainingItems.enumerated() {
+            item.position = index
+        }
+        
+        // Save changes
+        do {
+            try modelContext.save()
+            print("✅ Removed \(itemsToDelete.count) item(s) from profile")
+        } catch {
+            print("❌ Failed to delete items: \(error)")
+        }
+    }
+    
+    private func deleteItem(_ item: DockItem) {
+        // Find the index and delete using the existing function
+        if let index = sortedItems.firstIndex(where: { $0.id == item.id }) {
+            deleteItems(at: IndexSet(integer: index))
         }
     }
 }
