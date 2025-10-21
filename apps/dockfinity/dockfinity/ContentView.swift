@@ -48,6 +48,8 @@ struct ContentView: View {
                         } label: {
                             Label("Refresh from Dock", systemImage: "arrow.clockwise")
                         }
+                        .labelStyle(.titleAndIcon)
+                        .help("Update this profile with the current Dock items")
                         .disabled(isRefreshing)
                         
                         Button {
@@ -55,8 +57,10 @@ struct ContentView: View {
                                 await applyProfile(selectedProfile)
                             }
                         } label: {
-                            Label("Apply Profile", systemImage: "checkmark.circle")
+                            Label("Apply to Dock", systemImage: "checkmark.circle")
                         }
+                        .labelStyle(.titleAndIcon)
+                        .help("Apply this profile's items to your Dock")
                         .disabled(isRefreshing)
                     }
                 }
