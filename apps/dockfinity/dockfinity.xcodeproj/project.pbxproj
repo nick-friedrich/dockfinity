@@ -6,6 +6,10 @@
 	objectVersion = 77;
 	objects = {
 
+/* Begin PBXBuildFile section */
+		01FCBD9B2EA8CAF70088A4CE /* DockFinity.icon in Resources */ = {isa = PBXBuildFile; fileRef = 01FCBD9A2EA8CAF70088A4CE /* DockFinity.icon */; };
+/* End PBXBuildFile section */
+
 /* Begin PBXContainerItemProxy section */
 		014DDFEE2EA3489500AF884E /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
@@ -27,6 +31,7 @@
 		014DDFDE2EA3489400AF884E /* dockfinity.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = dockfinity.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		014DDFED2EA3489500AF884E /* dockfinityTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = dockfinityTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		014DDFF72EA3489500AF884E /* dockfinityUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = dockfinityUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
+		01FCBD9A2EA8CAF70088A4CE /* DockFinity.icon */ = {isa = PBXFileReference; lastKnownFileType = folder.iconcomposer.icon; path = DockFinity.icon; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedRootGroup section */
@@ -79,6 +84,7 @@
 				014DDFF02EA3489500AF884E /* dockfinityTests */,
 				014DDFFA2EA3489500AF884E /* dockfinityUITests */,
 				014DDFDF2EA3489400AF884E /* Products */,
+				01FCBD9A2EA8CAF70088A4CE /* DockFinity.icon */,
 			);
 			sourceTree = "<group>";
 		};
@@ -212,6 +218,7 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				01FCBD9B2EA8CAF70088A4CE /* DockFinity.icon in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -392,9 +399,9 @@
 		014DE0022EA3489500AF884E /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				ASSETCATALOG_COMPILER_APPICON_NAME = Icon_Composer;
+				ASSETCATALOG_COMPILER_APPICON_NAME = DockFinity;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
-				ASSETCATALOG_COMPILER_INCLUDE_ALL_APPICON_ASSETS = YES;
+				ASSETCATALOG_COMPILER_INCLUDE_ALL_APPICON_ASSETS = NO;
 				"CODE_SIGN_IDENTITY[sdk=macosx*]" = "Apple Development";
 				CODE_SIGN_STYLE = Automatic;
 				COMBINE_HIDPI_IMAGES = YES;
@@ -427,9 +434,9 @@
 		014DE0032EA3489500AF884E /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				ASSETCATALOG_COMPILER_APPICON_NAME = Icon_Composer;
+				ASSETCATALOG_COMPILER_APPICON_NAME = DockFinity;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
-				ASSETCATALOG_COMPILER_INCLUDE_ALL_APPICON_ASSETS = YES;
+				ASSETCATALOG_COMPILER_INCLUDE_ALL_APPICON_ASSETS = NO;
 				"CODE_SIGN_IDENTITY[sdk=macosx*]" = "Apple Development";
 				CODE_SIGN_STYLE = Automatic;
 				COMBINE_HIDPI_IMAGES = YES;
