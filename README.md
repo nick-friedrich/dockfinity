@@ -18,7 +18,7 @@ DockFinity lets you create and switch between different Dock configurations. Sav
 
 ## Requirements
 
-- macOS 26 or later
+- macOS 14.6 or later (after 1.0.0, for 1.0.0 you need macOS 26.0 or later)
 
 ## License
 
