@@ -24,6 +24,9 @@ DockFinity lets you create and switch between different Dock configurations. Sav
 
 Non-commercial use only. See [LICENSE](LICENSE) for details.
 
+## Credits
+[https://github.com/kcrawford/dockutil](https://github.com/kcrawford/dockutil): Without this awesome tool this app wouldn't be possible.
+
 ---
 
 See [WISHLIST.md](WISHLIST.md) for planned features and roadmap.
