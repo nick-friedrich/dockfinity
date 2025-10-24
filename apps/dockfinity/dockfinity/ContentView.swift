@@ -93,34 +93,28 @@ struct ContentView: View {
     
     // MARK: - Actions
     
+    @MainActor
     private func applyProfile(_ profile: Profile) async {
         do {
             try await dockStateManager.applyProfile(profile)
         } catch {
-            await MainActor.run {
-                errorMessage = "Failed to apply profile: \(error.localizedDescription)"
-                showingError = true
-            }
+            errorMessage = "Failed to apply profile: \(error.localizedDescription)"
+            showingError = true
         }
     }
     
+    @MainActor
     private func refreshProfile(_ profile: Profile) async {
-        await MainActor.run {
-            isRefreshing = true
-        }
+        isRefreshing = true
         
         do {
             try await dockStateManager.refreshProfileFromDock(profile)
         } catch {
-            await MainActor.run {
-                errorMessage = "Failed to refresh profile: \(error.localizedDescription)"
-                showingError = true
-            }
+            errorMessage = "Failed to refresh profile: \(error.localizedDescription)"
+            showingError = true
         }
         
-        await MainActor.run {
-            isRefreshing = false
-        }
+        isRefreshing = false
     }
     
     private func duplicateProfile(_ profile: Profile) {

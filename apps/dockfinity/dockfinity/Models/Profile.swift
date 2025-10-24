@@ -9,7 +9,7 @@ import Foundation
 import SwiftData
 
 @Model
-final class Profile: Sendable {
+final class Profile {
     var id: UUID
     var name: String
     var creationDate: Date
