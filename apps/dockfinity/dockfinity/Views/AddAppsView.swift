@@ -8,6 +8,7 @@
 import SwiftUI
 import SwiftData
 import AppKit
+import UniformTypeIdentifiers
 
 struct AppInfo: Identifiable {
     let id = UUID()
@@ -26,6 +27,7 @@ struct AddAppsView: View {
     @State private var initiallySelectedPaths: Set<String> = []
     @State private var isLoading = true
     @State private var searchText = ""
+    @State private var showingFilePicker = false
     
     var filteredApps: [AppInfo] {
         if searchText.isEmpty {
@@ -70,6 +72,23 @@ struct AddAppsView: View {
             }
             .padding()
             .background(Color(NSColor.controlBackgroundColor))
+            
+            // Browse button
+            HStack {
+                Button(action: { showingFilePicker = true }) {
+                    Label("Browse for App...", systemImage: "folder")
+                }
+                .buttonStyle(.bordered)
+                
+                Spacer()
+                
+                Text("Tip: Use Browse to add apps from any location")
+                    .font(.caption)
+                    .foregroundColor(.secondary)
+            }
+            .padding(.horizontal)
+            .padding(.vertical, 8)
+            .background(Color(NSColor.controlBackgroundColor).opacity(0.5))
             
             Divider()
             
@@ -172,6 +191,13 @@ struct AddAppsView: View {
             .padding()
         }
         .frame(width: 600, height: 500)
+        .fileImporter(
+            isPresented: $showingFilePicker,
+            allowedContentTypes: [.application],
+            allowsMultipleSelection: false
+        ) { result in
+            handleBrowsedApp(result)
+        }
         .task {
             // Initialize selected paths with apps already in profile
             initiallySelectedPaths = Set(profile.items.map(\.path))
@@ -191,38 +217,16 @@ struct AddAppsView: View {
             .appendingPathComponent("Applications").path
         
         var apps: [AppInfo] = []
-        let fileManager = FileManager.default
+        var seenPaths = Set<String>() // Deduplicate apps by path
         
-        // Scan all three directories
+        // Scan all three directories recursively
         for appsPath in [systemAppsPath, applicationsPath, userAppsPath] {
-            guard let appURLs = try? fileManager.contentsOfDirectory(
-                at: URL(fileURLWithPath: appsPath),
-                includingPropertiesForKeys: nil
-            ) else { continue }
-            
-            for appURL in appURLs where appURL.pathExtension == "app" {
-                let path = appURL.path
-                let name = appURL.deletingPathExtension().lastPathComponent
-                
-                // Get app icon
-                let icon = NSWorkspace.shared.icon(forFile: path)
-                let targetSize = NSSize(width: 32, height: 32)
-                let resizedIcon = NSImage(size: targetSize)
-                resizedIcon.lockFocus()
-                icon.draw(in: NSRect(origin: .zero, size: targetSize),
-                         from: NSRect(origin: .zero, size: icon.size),
-                         operation: .copy,
-                         fraction: 1.0)
-                resizedIcon.unlockFocus()
-                
-                var iconData: Data? = nil
-                if let tiffData = resizedIcon.tiffRepresentation,
-                   let bitmap = NSBitmapImageRep(data: tiffData),
-                   let pngData = bitmap.representation(using: .png, properties: [:]) {
-                    iconData = pngData
+            let foundApps = findAppsRecursively(in: appsPath, maxDepth: 4)
+            for app in foundApps {
+                if !seenPaths.contains(app.path) {
+                    apps.append(app)
+                    seenPaths.insert(app.path)
                 }
-                
-                apps.append(AppInfo(name: name, path: path, iconData: iconData))
             }
         }
         
@@ -233,6 +237,111 @@ struct AddAppsView: View {
         await MainActor.run {
             self.availableApps = apps
             self.isLoading = false
+        }
+    }
+    
+    private func findAppsRecursively(in path: String, maxDepth: Int, currentDepth: Int = 0) -> [AppInfo] {
+        var apps: [AppInfo] = []
+        
+        // Stop if we've reached max depth
+        guard currentDepth < maxDepth else { return apps }
+        
+        let fileManager = FileManager.default
+        let url = URL(fileURLWithPath: path)
+        
+        // Use enumerator for efficient directory traversal
+        guard let enumerator = fileManager.enumerator(
+            at: url,
+            includingPropertiesForKeys: [.isDirectoryKey, .isPackageKey],
+            options: [.skipsHiddenFiles]
+        ) else { return apps }
+        
+        for case let itemURL as URL in enumerator {
+            // Check if it's an .app bundle
+            if itemURL.pathExtension == "app" {
+                let path = itemURL.path
+                let name = itemURL.deletingPathExtension().lastPathComponent
+                
+                // Get app icon
+                if let iconData = getAppIconData(for: path) {
+                    apps.append(AppInfo(name: name, path: path, iconData: iconData))
+                } else {
+                    apps.append(AppInfo(name: name, path: path, iconData: nil))
+                }
+                
+                // Skip contents of .app bundles - don't descend into them
+                enumerator.skipDescendants()
+            }
+            
+            // Limit depth by tracking and skipping too-deep directories
+            if let resourceValues = try? itemURL.resourceValues(forKeys: [.isDirectoryKey]),
+               let isDirectory = resourceValues.isDirectory,
+               isDirectory {
+                let itemPath = itemURL.path
+                let depth = itemPath.components(separatedBy: "/").count - path.components(separatedBy: "/").count
+                if depth >= maxDepth {
+                    enumerator.skipDescendants()
+                }
+            }
+        }
+        
+        return apps
+    }
+    
+    private func getAppIconData(for path: String) -> Data? {
+        let icon = NSWorkspace.shared.icon(forFile: path)
+        let targetSize = NSSize(width: 32, height: 32)
+        let resizedIcon = NSImage(size: targetSize)
+        resizedIcon.lockFocus()
+        icon.draw(in: NSRect(origin: .zero, size: targetSize),
+                 from: NSRect(origin: .zero, size: icon.size),
+                 operation: .copy,
+                 fraction: 1.0)
+        resizedIcon.unlockFocus()
+        
+        if let tiffData = resizedIcon.tiffRepresentation,
+           let bitmap = NSBitmapImageRep(data: tiffData),
+           let pngData = bitmap.representation(using: .png, properties: [:]) {
+            return pngData
+        }
+        return nil
+    }
+    
+    private func handleBrowsedApp(_ result: Result<[URL], Error>) {
+        switch result {
+        case .success(let urls):
+            // Get the first URL (should only be one since allowsMultipleSelection is false)
+            guard let url = urls.first else { return }
+            
+            // Ensure we have access to the file
+            guard url.startAccessingSecurityScopedResource() else {
+                print("Failed to access selected app")
+                return
+            }
+            defer { url.stopAccessingSecurityScopedResource() }
+            
+            let path = url.path
+            let name = url.deletingPathExtension().lastPathComponent
+            
+            // Check if app is already in the list
+            if availableApps.contains(where: { $0.path == path }) {
+                // App already exists, just select it
+                selectedAppPaths.insert(path)
+            } else {
+                // Add new app to the list
+                let iconData = getAppIconData(for: path)
+                let newApp = AppInfo(name: name, path: path, iconData: iconData)
+                
+                // Insert and re-sort
+                availableApps.append(newApp)
+                availableApps.sort { $0.name.localizedCaseInsensitiveCompare($1.name) == .orderedAscending }
+                
+                // Automatically select it
+                selectedAppPaths.insert(path)
+            }
+            
+        case .failure(let error):
+            print("Error selecting app: \(error.localizedDescription)")
         }
     }
     
