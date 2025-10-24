@@ -7,7 +7,7 @@ A macOS menu bar app for managing multiple Dock profiles.
 ## What is it?
 
 DockFinity lets you create and switch between different Dock configurations. Save profiles for different contexts like "Work", "Gaming", or "Design" and switch between them instantly.
-
+<a href="https://www.buymeacoffee.com/nickfthedev" target="_blank"><img src="https://cdn.buymeacoffee.com/buttons/v2/default-yellow.png" alt="Buy Me A Coffee" style="height: 60px !important;width: 217px !important;" ></a>
 ## Features
 
 - Create multiple Dock profiles with different apps, URLs, and folders
