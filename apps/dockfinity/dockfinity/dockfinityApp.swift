@@ -16,11 +16,10 @@ struct dockfinityApp: App {
             DockItem.self,
         ])
         
-        // Configure with CloudKit support
+        // Configure for local-only storage
         let modelConfiguration = ModelConfiguration(
             schema: schema,
-            isStoredInMemoryOnly: false,
-            cloudKitDatabase: .automatic
+            isStoredInMemoryOnly: false
         )
 
         do {
