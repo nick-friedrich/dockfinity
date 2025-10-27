@@ -7,10 +7,11 @@
 - [ ] Add apps, URLs, folders in a profile
 - [ ] Smart Web links: include website shortcuts (fetch favicon automatically or custom icons)
 - [ ] Custom icons & colors for tiles
-- [ ] Profile sidebar + menu bar access
 - [ ] Works offline, no cloud dependency, runs locally
 - [ ] Saves a "Default" profile (original Dock) so you can revert
 - [ ] Optionally "spacers" or separators
+- [x] Hide DockFinity icon in Dock in Settings
+- [x] Profile sidebar + menu bar access
 
 ### Icon & Tile Customization
 

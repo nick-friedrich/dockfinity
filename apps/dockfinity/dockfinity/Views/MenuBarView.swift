@@ -78,6 +78,14 @@ struct MenuBarView: View {
             .padding(.horizontal, 8)
             .padding(.vertical, 4)
             
+            // Settings link
+            SettingsLink {
+                Text("Settings...")
+            }
+            .buttonStyle(.plain)
+            .padding(.horizontal, 8)
+            .padding(.vertical, 4)
+            
             Divider()
                 .padding(.vertical, 4)
             

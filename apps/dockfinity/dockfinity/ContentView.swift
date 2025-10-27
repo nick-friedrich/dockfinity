@@ -75,6 +75,14 @@ struct ContentView: View {
         }
         .navigationSplitViewStyle(.balanced)
         .frame(minWidth: 900, minHeight: 500)
+        .toolbar {
+            ToolbarItem(placement: .automatic) {
+                SettingsLink {
+                    Label("Settings", systemImage: "gear")
+                }
+                .help("Open Settings")
+            }
+        }
         .sheet(isPresented: $showingNewProfile) {
             NavigationStack {
                 ProfileFormView { newProfile in

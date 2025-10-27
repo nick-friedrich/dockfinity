@@ -30,6 +30,7 @@ struct dockfinityApp: App {
         }
     }()
     
+    @StateObject private var appSettings = AppSettings.shared
     @State private var isInitialized = false
 
     var body: some Scene {
@@ -37,6 +38,7 @@ struct dockfinityApp: App {
             if isInitialized {
                 ContentView(modelContext: sharedModelContainer.mainContext)
                     .modelContainer(sharedModelContainer)
+                    .environmentObject(appSettings)
             } else {
                 ProgressView("Initializing DockFinity...")
                     .frame(maxWidth: .infinity, maxHeight: .infinity)
@@ -51,10 +53,15 @@ struct dockfinityApp: App {
             CommandGroup(replacing: .newItem) { }
         }
         
+        Settings {
+            SettingsView(appSettings: appSettings)
+        }
+        
         MenuBarExtra("DockFinity", systemImage: "dock.rectangle") {
             if isInitialized {
                 MenuBarView(modelContext: sharedModelContainer.mainContext)
                     .modelContainer(sharedModelContainer)
+                    .environmentObject(appSettings)
             } else {
                 Text("Initializing...")
                     .foregroundColor(.secondary)
