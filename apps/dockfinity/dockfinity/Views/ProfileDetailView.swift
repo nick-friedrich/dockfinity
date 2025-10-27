@@ -15,6 +15,7 @@ struct ProfileDetailView: View {
     
     @Environment(\.modelContext) private var modelContext
     @State private var showingAddApps = false
+    @State private var showingAddFolders = false
     
     var sortedItems: [DockItem] {
         profile.items.sorted { $0.position < $1.position }
@@ -58,9 +59,22 @@ struct ProfileDetailView: View {
                 .labelStyle(.titleAndIcon)
                 .help("Add applications to this profile")
             }
+            
+            ToolbarItem(placement: .primaryAction) {
+                Button {
+                    showingAddFolders = true
+                } label: {
+                    Label("Add Folders", systemImage: "folder.badge.plus")
+                }
+                .labelStyle(.titleAndIcon)
+                .help("Add folders to this profile")
+            }
         }
         .sheet(isPresented: $showingAddApps) {
             AddAppsView(profile: profile)
+        }
+        .sheet(isPresented: $showingAddFolders) {
+            AddFoldersView(profile: profile)
         }
         .overlay {
             if isRefreshing {
