@@ -30,7 +30,9 @@ struct dockfinityApp: App {
     }()
     
     @StateObject private var appSettings = AppSettings.shared
+    @StateObject private var updateChecker = UpdateChecker.shared
     @State private var isInitialized = false
+    @State private var showUpdateWindow = false
 
     var body: some Scene {
         WindowGroup(id: "main") {
@@ -38,6 +40,15 @@ struct dockfinityApp: App {
                 ContentView(modelContext: sharedModelContainer.mainContext)
                     .modelContainer(sharedModelContainer)
                     .environmentObject(appSettings)
+                    .environmentObject(updateChecker)
+                    .sheet(isPresented: $showUpdateWindow) {
+                        UpdateNotificationView(updateChecker: updateChecker)
+                    }
+                    .onChange(of: updateChecker.isUpdateAvailable) { _, isAvailable in
+                        if isAvailable {
+                            showUpdateWindow = true
+                        }
+                    }
             } else {
                 ProgressView("Initializing DockFinity...")
                     .frame(maxWidth: .infinity, maxHeight: .infinity)
@@ -61,6 +72,7 @@ struct dockfinityApp: App {
                 MenuBarView(modelContext: sharedModelContainer.mainContext)
                     .modelContainer(sharedModelContainer)
                     .environmentObject(appSettings)
+                    .environmentObject(updateChecker)
             } else {
                 Text("Initializing...")
                     .foregroundColor(.secondary)
@@ -88,5 +100,10 @@ struct dockfinityApp: App {
         }
         
         isInitialized = true
+        
+        // Check for updates on app launch (silent check)
+        Task {
+            await updateChecker.checkForUpdates(silent: true)
+        }
     }
 }

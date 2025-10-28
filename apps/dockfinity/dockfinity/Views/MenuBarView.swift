@@ -12,6 +12,7 @@ import AppKit
 struct MenuBarView: View {
     @Environment(\.modelContext) private var modelContext
     @Environment(\.openWindow) private var openWindow
+    @EnvironmentObject private var updateChecker: UpdateChecker
     @Query(sort: \Profile.sortOrder) private var profiles: [Profile]
     
     @StateObject private var dockStateManager: DockStateManager
@@ -86,6 +87,26 @@ struct MenuBarView: View {
             .padding(.horizontal, 8)
             .padding(.vertical, 4)
             
+            // Check for updates
+            Button(action: {
+                Task {
+                    await checkForUpdates()
+                }
+            }) {
+                HStack {
+                    Text("Check for Updates")
+                    if updateChecker.isChecking {
+                        Spacer()
+                        ProgressView()
+                            .scaleEffect(0.5)
+                    }
+                }
+            }
+            .buttonStyle(.plain)
+            .padding(.horizontal, 8)
+            .padding(.vertical, 4)
+            .disabled(updateChecker.isChecking)
+            
             Divider()
                 .padding(.vertical, 4)
             
@@ -104,6 +125,19 @@ struct MenuBarView: View {
             }
         } message: { message in
             Text(message)
+        }
+    }
+    
+    private func checkForUpdates() async {
+        // This will trigger the main sheet if update is available
+        await updateChecker.checkForUpdates(silent: false, notify: true)
+        
+        // If no update is available after a manual check, show confirmation
+        if !updateChecker.isUpdateAvailable {
+            await MainActor.run {
+                errorMessage = "You're running the latest version (\(updateChecker.currentVersion))"
+                showingError = true
+            }
         }
     }
     

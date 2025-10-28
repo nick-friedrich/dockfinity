@@ -11,12 +11,14 @@ DockFinity lets you create and switch between different Dock configurations. Sav
 <br />
 
 <a href="https://www.buymeacoffee.com/nickfthedev" target="_blank"><img src="https://cdn.buymeacoffee.com/buttons/v2/default-yellow.png" alt="Buy Me A Coffee" style="height: 60px !important;width: 217px !important;" ></a>
+
 ## Features
 
 - Create multiple Dock profiles with different apps, URLs, and folders
 - Quick profile switching from the menu bar
 - Keyboard shortcuts for instant profile changes
 - Import/export profiles to share or backup
+- Automatic update notifications from GitHub releases
 - Works completely offline
 
 ## Requirements
@@ -28,6 +30,7 @@ DockFinity lets you create and switch between different Dock configurations. Sav
 Non-commercial use only. See [LICENSE](LICENSE) for details.
 
 ## Credits
+
 [https://github.com/kcrawford/dockutil](https://github.com/kcrawford/dockutil): Without this awesome tool this app wouldn't be possible.
 
 ---

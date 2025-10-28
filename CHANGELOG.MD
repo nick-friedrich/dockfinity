@@ -1,5 +1,10 @@
 ## 1.0.4
 
+- Added automatic update notifications from GitHub releases
+- App checks for updates on launch and displays notification when new version is available
+- Manual update check available in menu bar and Settings
+- Shows current version and last update check time in Settings
+
 - Fixed bug where folders next to Trash (persistentOthers section) disappeared when switching profiles
 - App now properly saves and restores all dock sections (apps and others)
 - Folders like Applications, Downloads, etc. will now persist across profile changes
