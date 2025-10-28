@@ -33,6 +33,7 @@ struct DockItemInfo {
     let name: String
     let path: String
     let iconData: Data?
+    let section: String // "apps" or "others"
 }
 
 class DockUtilService {
@@ -156,15 +157,13 @@ class DockUtilService {
         
         switch item.type {
         case .app:
-            // Explicitly add to apps section to avoid going to "others"
-            args = ["--add", item.path, "--section", "apps"]
+            args = ["--add", item.path, "--section", item.section]
         case .folder:
-            // Folders should go to "others" section by default, but we'll put them in apps
-            args = ["--add", item.path, "--view", "auto", "--display", "folder", "--section", "apps"]
+            args = ["--add", item.path, "--view", "auto", "--display", "folder", "--section", item.section]
         case .url:
-            args = ["--add", item.path, "--label", item.name, "--section", "apps"]
+            args = ["--add", item.path, "--label", item.name, "--section", item.section]
         case .spacer:
-            args = ["--add", "", "--type", "spacer", "--section", "apps"]
+            args = ["--add", "", "--type", "spacer", "--section", item.section]
         }
         
         // Add --no-restart flag if requested
@@ -383,11 +382,17 @@ class DockUtilService {
             
             let name = components[0]
             let path = components[1]
-            let section = components[2] // "persistentApps" or "persistentOthers"
+            let dockSection = components[2] // "persistentApps" or "persistentOthers"
             
-            // Only include pinned apps (persistentApps), skip recent/others
-            guard section == "persistentApps" else {
-                print("  ⏭️  Skipping non-pinned item: \(name)")
+            // Map dockutil section names to our section names
+            let section: String
+            if dockSection == "persistentApps" {
+                section = "apps"
+            } else if dockSection == "persistentOthers" {
+                section = "others"
+            } else {
+                // Skip unknown sections (e.g., recent items)
+                print("  ⏭️  Skipping unknown section: \(name) (\(dockSection))")
                 continue
             }
             
@@ -419,10 +424,10 @@ class DockUtilService {
             // Extract icon data for apps and folders
             let iconData = extractIconData(for: cleanPath, type: type)
             
-            items.append(DockItemInfo(type: type, name: name, path: cleanPath, iconData: iconData))
+            items.append(DockItemInfo(type: type, name: name, path: cleanPath, iconData: iconData, section: section))
         }
         
-        print("✅ Parsed \(items.count) pinned apps (filtered out non-pinned items)")
+        print("✅ Parsed \(items.count) items from Dock (apps and others sections)")
         return items
     }
 }

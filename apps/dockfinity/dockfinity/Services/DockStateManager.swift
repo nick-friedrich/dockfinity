@@ -84,11 +84,12 @@ class DockStateManager: ObservableObject {
                 name: itemInfo.name,
                 path: itemInfo.path,
                 position: index,
-                customIconData: itemInfo.iconData
+                customIconData: itemInfo.iconData,
+                section: itemInfo.section
             )
             dockItem.profile = defaultProfile
             modelContext.insert(dockItem)
-            print("  ➕ Added: \(itemInfo.name)")
+            print("  ➕ Added: \(itemInfo.name) (section: \(itemInfo.section))")
         }
         
         try modelContext.save()
@@ -116,7 +117,8 @@ class DockStateManager: ObservableObject {
                 name: itemInfo.name,
                 path: itemInfo.path,
                 position: index,
-                customIconData: itemInfo.iconData
+                customIconData: itemInfo.iconData,
+                section: itemInfo.section
             )
             dockItem.profile = profile
             modelContext.insert(dockItem)

@@ -142,6 +142,8 @@ struct DockItemRow: View {
     let item: DockItem
     let onDelete: () -> Void
     
+    @Environment(\.modelContext) private var modelContext
+    
     var body: some View {
         HStack(spacing: 12) {
             // Item icon - show actual icon if available, otherwise show placeholder
@@ -190,6 +192,23 @@ struct DockItemRow: View {
             
             Spacer()
             
+            // Section toggle for folders
+            if item.type == .folder {
+                Picker("", selection: Binding(
+                    get: { item.section },
+                    set: { newSection in
+                        item.section = newSection
+                        saveChanges()
+                    }
+                )) {
+                    Text("Apps").tag("apps")
+                    Text("Others").tag("others")
+                }
+                .pickerStyle(.segmented)
+                .frame(width: 140)
+                .help("Choose where this folder appears in the Dock")
+            }
+            
             // Trash icon button
             Button(action: onDelete) {
                 Image(systemName: "trash")
@@ -200,6 +219,15 @@ struct DockItemRow: View {
             .help("Remove from profile")
         }
         .padding(.vertical, 4)
+    }
+    
+    private func saveChanges() {
+        do {
+            try modelContext.save()
+            print("✅ Updated section for \(item.name) to \(item.section)")
+        } catch {
+            print("❌ Failed to save section change: \(error)")
+        }
     }
     
     private var itemIcon: String {
