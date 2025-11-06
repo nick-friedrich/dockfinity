@@ -16,14 +16,13 @@ struct dockfinityApp: App {
             DockItem.self,
         ])
         
-        // Configure for local-only storage
-        let modelConfiguration = ModelConfiguration(
-            schema: schema,
-            isStoredInMemoryOnly: false
-        )
-
+        // Configure for local-only storage (matches default SwiftData behavior)
+        let modelConfiguration = ModelConfiguration(schema: schema, isStoredInMemoryOnly: false)
+            
         do {
-            return try ModelContainer(for: schema, configurations: [modelConfiguration])
+            let container = try ModelContainer(for: schema, configurations: [modelConfiguration])
+            print("✅ ModelContainer initialized successfully")
+            return container
         } catch {
             fatalError("Could not create ModelContainer: \(error)")
         }

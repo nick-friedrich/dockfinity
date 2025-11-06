@@ -1,3 +1,10 @@
+## 1.0.5
+
+- **CRITICAL FIX**: Resolved profile persistence issue where saved dock profiles were disappearing after app restart
+- Fixed SwiftData configuration to use local-only storage with explicit CloudKit disabling
+- Profiles now reliably persist across app restarts and system reboots
+- Addresses data loss issue caused by CloudKit to local-only storage migration
+
 ## 1.0.4
 
 - Added automatic update notifications from GitHub releases
