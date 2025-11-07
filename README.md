@@ -17,7 +17,7 @@ DockFinity lets you create and switch between different Dock configurations. Sav
 - Create multiple Dock profiles with different apps, URLs, and folders
 - Quick profile switching from the menu bar
 - Keyboard shortcuts for instant profile changes [COMING SOON]
-- Import/export profiles to share or backup [COMING SOON]
+- Import/export profiles to share or backup
 - Automatic update notifications from GitHub releases
 - Works completely offline
 

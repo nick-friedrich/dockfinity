@@ -36,8 +36,8 @@
 
 ### Import/Export
 
-- [ ] Export profile data (JSON or similar) to share or backup
-- [ ] Import someone else's profile or a JSON
+- [x] Export profile data (JSON or similar) to share or backup
+- [x] Import someone else's profile or a JSON
 
 ## Advanced Features (Future)
 
