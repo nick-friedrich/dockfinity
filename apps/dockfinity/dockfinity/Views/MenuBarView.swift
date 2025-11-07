@@ -20,8 +20,8 @@ struct MenuBarView: View {
     @State private var errorMessage: String?
     @State private var showingError = false
     
-    init(modelContext: ModelContext) {
-        _dockStateManager = StateObject(wrappedValue: DockStateManager(modelContext: modelContext))
+    init() {
+        _dockStateManager = StateObject(wrappedValue: DockStateManager())
     }
     
     var body: some View {
@@ -119,6 +119,9 @@ struct MenuBarView: View {
             .padding(.vertical, 4)
         }
         .padding(.vertical, 4)
+        .onAppear {
+            dockStateManager.attach(context: modelContext)
+        }
         .alert("Error", isPresented: $showingError, presenting: errorMessage) { _ in
             Button("OK") {
                 errorMessage = nil

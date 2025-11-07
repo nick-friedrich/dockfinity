@@ -18,8 +18,8 @@ struct ContentView: View {
     @State private var errorMessage: String?
     @State private var showingError = false
     
-    init(modelContext: ModelContext) {
-        _dockStateManager = StateObject(wrappedValue: DockStateManager(modelContext: modelContext))
+    init() {
+        _dockStateManager = StateObject(wrappedValue: DockStateManager())
     }
     
     var body: some View {
@@ -75,6 +75,9 @@ struct ContentView: View {
         }
         .navigationSplitViewStyle(.balanced)
         .frame(minWidth: 900, minHeight: 500)
+        .onAppear {
+            dockStateManager.attach(context: modelContext)
+        }
         .toolbar {
             ToolbarItem(placement: .automatic) {
                 SettingsLink {
@@ -133,20 +136,27 @@ struct ContentView: View {
         )
         modelContext.insert(duplicate)
         
-        for item in profile.items {
+        for item in profile.items.sorted(by: { $0.position < $1.position }) {
             let duplicateItem = DockItem(
                 type: item.type,
                 name: item.name,
                 path: item.path,
                 position: item.position,
-                customIconData: item.customIconData
+                customIconData: item.customIconData,
+                section: item.section
             )
             duplicateItem.profile = duplicate
             modelContext.insert(duplicateItem)
         }
         
-        try? modelContext.save()
-        selectedProfile = duplicate
+        do {
+            try modelContext.save()
+            selectedProfile = duplicate
+        } catch {
+            modelContext.delete(duplicate)
+            errorMessage = "Failed to duplicate profile: \(error.localizedDescription)"
+            showingError = true
+        }
     }
 }
 
@@ -167,6 +177,6 @@ struct ContentView: View {
     item2.profile = profile
     context.insert(item2)
     
-    return ContentView(modelContext: context)
+    return ContentView()
         .modelContainer(container)
 }

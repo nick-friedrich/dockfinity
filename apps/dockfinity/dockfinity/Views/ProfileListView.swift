@@ -127,9 +127,12 @@ struct ProfileListView: View {
                 selectedProfile = nil
             }
             modelContext.delete(profile)
-            try? modelContext.save()
+            do {
+                try modelContext.save()
+            } catch {
+                print("❌ Failed to delete profile: \(error)")
+            }
         }
         deletingProfile = nil
     }
 }
-

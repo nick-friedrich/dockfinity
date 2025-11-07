@@ -354,7 +354,8 @@ struct AddFoldersView: View {
                     name: folderInfo.name,
                     path: folderInfo.path,
                     position: maxPosition + 1 + index,
-                    customIconData: folderInfo.iconData
+                    customIconData: folderInfo.iconData,
+                    section: "others"
                 )
                 dockItem.profile = profile
                 modelContext.insert(dockItem)
@@ -383,4 +384,3 @@ struct AddFoldersView: View {
         }
     }
 }
-

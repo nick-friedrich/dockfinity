@@ -1,3 +1,9 @@
+## 1.0.6
+
+- Added Dock refresh transaction safeguards so failed dockutil reads no longer wipe existing profiles
+- Preserved Dock section metadata when duplicating profiles or adding folders, preventing misplaced Dock items
+- Surfaced persistence errors in the UI to make failures actionable instead of silently discarding data
+
 ## 1.0.5
 
 - **CRITICAL FIX**: Resolved profile persistence issue where saved dock profiles were disappearing after app restart
