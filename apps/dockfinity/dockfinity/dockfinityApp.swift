@@ -68,6 +68,7 @@ struct dockfinityApp: App {
         Settings {
             SettingsView(appSettings: appSettings)
         }
+        .modelContainer(container)
 
         MenuBarExtra("DockFinity", systemImage: "dock.rectangle") {
             if isInitialized {

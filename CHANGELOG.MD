@@ -3,6 +3,8 @@
 - Added Dock refresh transaction safeguards so failed dockutil reads no longer wipe existing profiles
 - Preserved Dock section metadata when duplicating profiles or adding folders, preventing misplaced Dock items
 - Surfaced persistence errors in the UI to make failures actionable instead of silently discarding data
+- Introduced JSON backup/export plus restore flow (Settings → Backup & Restore) so users can archive profiles anywhere
+- Backup restores now replace the SwiftData store transactionally and re-select the default profile to avoid mismatched state
 
 ## 1.0.5
 

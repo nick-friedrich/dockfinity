@@ -28,8 +28,16 @@ final class DockItem {
     // Relationship
     var profile: Profile?
     
-    init(type: DockItemType, name: String, path: String, position: Int, customIconData: Data? = nil, section: String = "apps") {
-        self.id = UUID()
+    init(
+        id: UUID = UUID(),
+        type: DockItemType,
+        name: String,
+        path: String,
+        position: Int,
+        customIconData: Data? = nil,
+        section: String = "apps"
+    ) {
+        self.id = id
         self.type = type
         self.name = name
         self.path = path
@@ -38,4 +46,3 @@ final class DockItem {
         self.section = section
     }
 }
-

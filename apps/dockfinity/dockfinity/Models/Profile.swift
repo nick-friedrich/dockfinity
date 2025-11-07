@@ -20,13 +20,18 @@ final class Profile {
     @Relationship(deleteRule: .cascade, inverse: \DockItem.profile)
     var items: [DockItem]
     
-    init(name: String, isDefault: Bool = false, sortOrder: Int = 0) {
-        self.id = UUID()
+    init(
+        id: UUID = UUID(),
+        name: String,
+        creationDate: Date = Date(),
+        isDefault: Bool = false,
+        sortOrder: Int = 0
+    ) {
+        self.id = id
         self.name = name
-        self.creationDate = Date()
+        self.creationDate = creationDate
         self.isDefault = isDefault
         self.sortOrder = sortOrder
         self.items = []
     }
 }
-
